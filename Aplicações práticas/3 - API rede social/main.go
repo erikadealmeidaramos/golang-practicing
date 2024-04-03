@@ -5,12 +5,16 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+
+	"api/src/config"
 )
 
 func main() {
-	fmt.Println("Rodando API")
+	config.Load()
+
+	fmt.Println("Escutando na porta: ", fmt.Sprintf(":%d", config.Port))
 
 	r := router.Generate()
 
-	log.Fatal(http.ListenAndServe(":5000", r))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", config.Port), r))
 }

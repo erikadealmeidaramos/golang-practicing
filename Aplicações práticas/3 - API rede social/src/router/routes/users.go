@@ -9,7 +9,7 @@ var usersRoutes = []Route{
 	{
 		URI:          "/users",
 		Method:       http.MethodPost,
-		Function:     func(w http.ResponseWriter, r *http.Request) {},
+		Function:     controllers.CreateUser,
 		RequiresAuth: false,
 	},
 	{
@@ -25,7 +25,7 @@ var usersRoutes = []Route{
 		RequiresAuth: false,
 	},
 	{
-		URI:          "/users",
+		URI:          "/users/{userId}",
 		Method:       http.MethodPut,
 		Function:     controllers.UpdateUser,
 		RequiresAuth: false,
