@@ -124,3 +124,115 @@ func (repository Users) FindByEmail(email string) (models.User, error) {
 
 	return user, nil
 }
+
+func (repository Users) Follow(followerID, followedID uint64) error {
+	statement, error := repository.db.Prepare("insert ignore into followers (user_id, follower_id) values (?, ?)")
+	if error != nil {
+		return error
+	}
+	defer statement.Close()
+
+	if _, error = statement.Exec(followedID, followerID); error != nil {
+		return error
+	}
+
+	return nil
+}
+
+func (repository Users) Unfollow(followerID, followedID uint64) error {
+	statement, error := repository.db.Prepare("delete from followers where user_id = ? and follower_id = ?")
+	if error != nil {
+		return error
+	}
+	defer statement.Close()
+
+	if _, error = statement.Exec(followedID, followerID); error != nil {
+		return error
+	}
+
+	return nil
+}
+
+func (repository Users) FindFollowers(userID uint64) ([]models.User, error) {
+	lines, error := repository.db.Query(`
+        select u.id, u.name, u.nick, u.email, u.created_at from users u
+        inner join followers f on u.id = f.follower_id
+        where f.user_id = ?
+    `, userID)
+	if error != nil {
+		return nil, error
+	}
+	defer lines.Close()
+
+	var users []models.User
+
+	for lines.Next() {
+		var user models.User
+
+		if error = lines.Scan(&user.ID, &user.Name, &user.Nick, &user.Email, &user.CreatedAt); error != nil {
+			return nil, error
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func (repository Users) FindFollowing(userID uint64) ([]models.User, error) {
+	lines, error := repository.db.Query(`
+        select u.id, u.name, u.nick, u.email, u.created_at from users u
+        inner join followers f on u.id = f.user_id
+        where f.follower_id = ?
+    `, userID)
+	if error != nil {
+		return nil, error
+	}
+	defer lines.Close()
+
+	var users []models.User
+
+	for lines.Next() {
+		var user models.User
+
+		if error = lines.Scan(&user.ID, &user.Name, &user.Nick, &user.Email, &user.CreatedAt); error != nil {
+			return nil, error
+		}
+
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
+func (repository Users) FindPassword(userID uint64) (string, error) {
+	lines, error := repository.db.Query("select password from users where id = ?", userID)
+	if error != nil {
+		return "", error
+	}
+	defer lines.Close()
+
+	var user models.User
+
+	if lines.Next() {
+		if error = lines.Scan(&user.Password); error != nil {
+			return "", error
+		}
+	}
+
+	return user.Password, nil
+}
+
+func (repository Users) UpdatePassword(userID uint64, password string) error {
+	statement, error := repository.db.Prepare("update users set password = ? where id = ?")
+	if error != nil {
+		return error
+	}
+	defer statement.Close()
+
+	if _, error = statement.Exec(password, userID); error != nil {
+		return error
+	}
+
+	return nil
+}

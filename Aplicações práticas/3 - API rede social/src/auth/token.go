@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	jwt "github.com/golang-jwt/jwt/v5"
 )
 
 func CreateToken(userId uint64) (string, error) {
@@ -51,4 +51,23 @@ func returnVerificationKey(token *jwt.Token) (interface{}, error) {
 		return nil, jwt.ErrSignatureInvalid
 	}
 	return config.SecretKey, nil
+}
+
+func ExtractUserId(r *http.Request) (uint64, error) {
+	tokenString := extractToken(r)
+
+	token, error := jwt.Parse(tokenString, returnVerificationKey)
+
+	if error != nil {
+		return 0, error
+	}
+
+	if permissions, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+		userId := permissions["userId"]
+		if userId != nil {
+			return uint64(userId.(float64)), nil
+		}
+	}
+
+	return 0, errors.New("invalid token")
 }

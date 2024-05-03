@@ -12,3 +12,27 @@ CREATE TABLE users (
     password VARCHAR(100) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB;
+
+DROP TABLE IF EXISTS followers;
+
+CREATE TABLE followers (
+    user_id INT NOT NULL,
+    follower_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (follower_id) REFERENCES users(id) ON DELETE CASCADE,
+
+    PRIMARY KEY (user_id, follower_id)
+) ENGINE=InnoDB;
+
+DROP TABLE IF EXISTS posts;
+
+CREATE TABLE posts (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    author_id INT NOT NULL,
+    title VARCHAR(50) NOT NULL,
+    content TEXT NOT NULL,
+    likes INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (author_id) REFERENCES users(id) ON DELETE CASCADE
+) ENGINE=InnoDB;
